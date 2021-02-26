@@ -10,13 +10,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kyleconroy/sqlc/internal/codegen/golang"
-	"github.com/kyleconroy/sqlc/internal/codegen/kotlin"
-	"github.com/kyleconroy/sqlc/internal/compiler"
-	"github.com/kyleconroy/sqlc/internal/config"
-	"github.com/kyleconroy/sqlc/internal/debug"
-	"github.com/kyleconroy/sqlc/internal/multierr"
-	"github.com/kyleconroy/sqlc/internal/opts"
+	"github.com/dmitrymomot/sqlc/internal/codegen/golang"
+	"github.com/dmitrymomot/sqlc/internal/codegen/kotlin"
+	"github.com/dmitrymomot/sqlc/internal/compiler"
+	"github.com/dmitrymomot/sqlc/internal/config"
+	"github.com/dmitrymomot/sqlc/internal/debug"
+	"github.com/dmitrymomot/sqlc/internal/multierr"
+	"github.com/dmitrymomot/sqlc/internal/opts"
 )
 
 const errMessageNoVersion = `The configuration file must have a version number.

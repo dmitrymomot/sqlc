@@ -1,7 +1,7 @@
 package compiler
 
 import (
-	"github.com/kyleconroy/sqlc/internal/sql/ast"
+	"github.com/dmitrymomot/sqlc/internal/sql/ast"
 )
 
 type Table struct {

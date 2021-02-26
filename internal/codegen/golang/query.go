@@ -3,7 +3,7 @@ package golang
 import (
 	"strings"
 
-	"github.com/kyleconroy/sqlc/internal/metadata"
+	"github.com/dmitrymomot/sqlc/internal/metadata"
 )
 
 type QueryValue struct {

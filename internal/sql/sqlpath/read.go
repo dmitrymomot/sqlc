@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kyleconroy/sqlc/internal/migrations"
+	"github.com/dmitrymomot/sqlc/internal/migrations"
 )
 
-// Return a list of SQL files in the listed paths. Only includes files ending
+// Glob return a list of SQL files in the listed paths. Only includes files ending
 // in .sql. Omits hidden files, directories, and migrations.
 func Glob(paths []string) ([]string, error) {
 	var files []string

@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/kyleconroy/sqlc/internal/config"
-	"github.com/kyleconroy/sqlc/internal/metadata"
+	"github.com/dmitrymomot/sqlc/internal/config"
+	"github.com/dmitrymomot/sqlc/internal/metadata"
 )
 
 type fileImports struct {
