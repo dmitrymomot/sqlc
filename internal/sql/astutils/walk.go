@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/kyleconroy/sqlc/internal/sql/ast"
-	"github.com/kyleconroy/sqlc/internal/sql/ast/pg"
 )
 
 type Visitor interface {
@@ -18,66 +17,70 @@ func (vf VisitorFunc) Visit(node ast.Node) Visitor {
 	return vf
 }
 
-func walkn(f Visitor, node ast.Node) {
-	if node != nil {
-		Walk(f, node)
-	}
-}
-
 func Walk(f Visitor, node ast.Node) {
 	if f = f.Visit(node); f == nil {
 		return
 	}
 	switch n := node.(type) {
 
-	case *ast.AlterTableCmd:
-		walkn(f, n.Def)
-
 	case *ast.AlterTableSetSchemaStmt:
-		walkn(f, n.Table)
+		if n.Table != nil {
+			Walk(f, n.Table)
+		}
 
 	case *ast.AlterTableStmt:
-		walkn(f, n.Table)
-		walkn(f, n.Cmds)
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+		if n.Table != nil {
+			Walk(f, n.Table)
+		}
+		if n.Cmds != nil {
+			Walk(f, n.Cmds)
+		}
 
 	case *ast.AlterTypeAddValueStmt:
-		walkn(f, n.Type)
+		if n.Type != nil {
+			Walk(f, n.Type)
+		}
 
 	case *ast.AlterTypeRenameValueStmt:
-		walkn(f, n.Type)
-
-	case *ast.ColumnDef:
-		walkn(f, n.TypeName)
-
-	case *ast.ColumnRef:
-		// pass
+		if n.Type != nil {
+			Walk(f, n.Type)
+		}
 
 	case *ast.CommentOnColumnStmt:
-		walkn(f, n.Table)
-		walkn(f, n.Col)
+		if n.Table != nil {
+			Walk(f, n.Table)
+		}
+		if n.Col != nil {
+			Walk(f, n.Col)
+		}
 
 	case *ast.CommentOnSchemaStmt:
-		walkn(f, n.Schema)
+		if n.Schema != nil {
+			Walk(f, n.Schema)
+		}
 
 	case *ast.CommentOnTableStmt:
-		walkn(f, n.Table)
+		if n.Table != nil {
+			Walk(f, n.Table)
+		}
 
 	case *ast.CommentOnTypeStmt:
-		walkn(f, n.Type)
+		if n.Type != nil {
+			Walk(f, n.Type)
+		}
 
-	case *ast.CreateEnumStmt:
-		walkn(f, n.TypeName)
-		walkn(f, n.Vals)
-
-	case *ast.CreateFunctionStmt:
-		walkn(f, n.ReturnType)
-		walkn(f, n.Func)
-
-	case *ast.CreateSchemaStmt:
-		// pass
+	case *ast.CompositeTypeStmt:
+		if n.TypeName != nil {
+			Walk(f, n.TypeName)
+		}
 
 	case *ast.CreateTableStmt:
-		walkn(f, n.Name)
+		if n.Name != nil {
+			Walk(f, n.Name)
+		}
 
 	case *ast.DropFunctionStmt:
 		// pass
@@ -95,37 +98,40 @@ func Walk(f Visitor, node ast.Node) {
 		// pass
 
 	case *ast.FuncParam:
-		walkn(f, n.Type)
-		walkn(f, n.DefExpr)
+		if n.Type != nil {
+			Walk(f, n.Type)
+		}
+		if n.DefExpr != nil {
+			Walk(f, n.DefExpr)
+		}
 
 	case *ast.FuncSpec:
-		walkn(f, n.Name)
+		if n.Name != nil {
+			Walk(f, n.Name)
+		}
 
 	case *ast.List:
-		// pass
-
-	case *ast.RawStmt:
-		walkn(f, n.Stmt)
+		for _, item := range n.Items {
+			Walk(f, item)
+		}
 
 	case *ast.RenameColumnStmt:
-		walkn(f, n.Table)
-		walkn(f, n.Col)
+		if n.Table != nil {
+			Walk(f, n.Table)
+		}
+		if n.Col != nil {
+			Walk(f, n.Col)
+		}
 
 	case *ast.RenameTableStmt:
-		walkn(f, n.Table)
-
-	case *ast.ResTarget:
-		walkn(f, n.Val)
-
-	case *ast.SelectStmt:
-		walkn(f, n.Fields)
-		walkn(f, n.From)
+		if n.Table != nil {
+			Walk(f, n.Table)
+		}
 
 	case *ast.Statement:
-		walkn(f, n.Raw)
-
-	case *ast.String:
-		// pass
+		if n.Raw != nil {
+			Walk(f, n.Raw)
+		}
 
 	case *ast.TODO:
 		// pass
@@ -133,990 +139,1983 @@ func Walk(f Visitor, node ast.Node) {
 	case *ast.TableName:
 		// pass
 
+	case *ast.A_ArrayExpr:
+		if n.Elements != nil {
+			Walk(f, n.Elements)
+		}
+
+	case *ast.A_Const:
+		if n.Val != nil {
+			Walk(f, n.Val)
+		}
+
+	case *ast.A_Expr:
+		if n.Name != nil {
+			Walk(f, n.Name)
+		}
+		if n.Lexpr != nil {
+			Walk(f, n.Lexpr)
+		}
+		if n.Rexpr != nil {
+			Walk(f, n.Rexpr)
+		}
+
+	case *ast.A_Indices:
+		if n.Lidx != nil {
+			Walk(f, n.Lidx)
+		}
+		if n.Uidx != nil {
+			Walk(f, n.Uidx)
+		}
+
+	case *ast.A_Indirection:
+		if n.Arg != nil {
+			Walk(f, n.Arg)
+		}
+		if n.Indirection != nil {
+			Walk(f, n.Indirection)
+		}
+
+	case *ast.A_Star:
+		// pass
+
+	case *ast.AccessPriv:
+		if n.Cols != nil {
+			Walk(f, n.Cols)
+		}
+
+	case *ast.Aggref:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Aggargtypes != nil {
+			Walk(f, n.Aggargtypes)
+		}
+		if n.Aggdirectargs != nil {
+			Walk(f, n.Aggdirectargs)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+		if n.Aggorder != nil {
+			Walk(f, n.Aggorder)
+		}
+		if n.Aggdistinct != nil {
+			Walk(f, n.Aggdistinct)
+		}
+		if n.Aggfilter != nil {
+			Walk(f, n.Aggfilter)
+		}
+
+	case *ast.Alias:
+		if n.Colnames != nil {
+			Walk(f, n.Colnames)
+		}
+
+	case *ast.AlterCollationStmt:
+		if n.Collname != nil {
+			Walk(f, n.Collname)
+		}
+
+	case *ast.AlterDatabaseSetStmt:
+		if n.Setstmt != nil {
+			Walk(f, n.Setstmt)
+		}
+
+	case *ast.AlterDatabaseStmt:
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.AlterDefaultPrivilegesStmt:
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+		if n.Action != nil {
+			Walk(f, n.Action)
+		}
+
+	case *ast.AlterDomainStmt:
+		if n.TypeName != nil {
+			Walk(f, n.TypeName)
+		}
+		if n.Def != nil {
+			Walk(f, n.Def)
+		}
+
+	case *ast.AlterEnumStmt:
+		if n.TypeName != nil {
+			Walk(f, n.TypeName)
+		}
+
+	case *ast.AlterEventTrigStmt:
+		// pass
+
+	case *ast.AlterExtensionContentsStmt:
+		if n.Object != nil {
+			Walk(f, n.Object)
+		}
+
+	case *ast.AlterExtensionStmt:
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.AlterFdwStmt:
+		if n.FuncOptions != nil {
+			Walk(f, n.FuncOptions)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.AlterForeignServerStmt:
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.AlterFunctionStmt:
+		if n.Func != nil {
+			Walk(f, n.Func)
+		}
+		if n.Actions != nil {
+			Walk(f, n.Actions)
+		}
+
+	case *ast.AlterObjectDependsStmt:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+		if n.Object != nil {
+			Walk(f, n.Object)
+		}
+		if n.Extname != nil {
+			Walk(f, n.Extname)
+		}
+
+	case *ast.AlterObjectSchemaStmt:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+		if n.Object != nil {
+			Walk(f, n.Object)
+		}
+
+	case *ast.AlterOpFamilyStmt:
+		if n.Opfamilyname != nil {
+			Walk(f, n.Opfamilyname)
+		}
+		if n.Items != nil {
+			Walk(f, n.Items)
+		}
+
+	case *ast.AlterOperatorStmt:
+		if n.Opername != nil {
+			Walk(f, n.Opername)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.AlterOwnerStmt:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+		if n.Object != nil {
+			Walk(f, n.Object)
+		}
+		if n.Newowner != nil {
+			Walk(f, n.Newowner)
+		}
+
+	case *ast.AlterPolicyStmt:
+		if n.Table != nil {
+			Walk(f, n.Table)
+		}
+		if n.Roles != nil {
+			Walk(f, n.Roles)
+		}
+		if n.Qual != nil {
+			Walk(f, n.Qual)
+		}
+		if n.WithCheck != nil {
+			Walk(f, n.WithCheck)
+		}
+
+	case *ast.AlterPublicationStmt:
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+		if n.Tables != nil {
+			Walk(f, n.Tables)
+		}
+
+	case *ast.AlterRoleSetStmt:
+		if n.Role != nil {
+			Walk(f, n.Role)
+		}
+		if n.Setstmt != nil {
+			Walk(f, n.Setstmt)
+		}
+
+	case *ast.AlterRoleStmt:
+		if n.Role != nil {
+			Walk(f, n.Role)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.AlterSeqStmt:
+		if n.Sequence != nil {
+			Walk(f, n.Sequence)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.AlterSubscriptionStmt:
+		if n.Publication != nil {
+			Walk(f, n.Publication)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.AlterSystemStmt:
+		if n.Setstmt != nil {
+			Walk(f, n.Setstmt)
+		}
+
+	case *ast.AlterTSConfigurationStmt:
+		if n.Cfgname != nil {
+			Walk(f, n.Cfgname)
+		}
+		if n.Tokentype != nil {
+			Walk(f, n.Tokentype)
+		}
+		if n.Dicts != nil {
+			Walk(f, n.Dicts)
+		}
+
+	case *ast.AlterTSDictionaryStmt:
+		if n.Dictname != nil {
+			Walk(f, n.Dictname)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.AlterTableCmd:
+		if n.Newowner != nil {
+			Walk(f, n.Newowner)
+		}
+		if n.Def != nil {
+			Walk(f, n.Def)
+		}
+
+	case *ast.AlterTableMoveAllStmt:
+		if n.Roles != nil {
+			Walk(f, n.Roles)
+		}
+
+	case *ast.AlterTableSpaceOptionsStmt:
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.AlterUserMappingStmt:
+		if n.User != nil {
+			Walk(f, n.User)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.AlternativeSubPlan:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Subplans != nil {
+			Walk(f, n.Subplans)
+		}
+
+	case *ast.ArrayCoerceExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Arg != nil {
+			Walk(f, n.Arg)
+		}
+
+	case *ast.ArrayExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Elements != nil {
+			Walk(f, n.Elements)
+		}
+
+	case *ast.ArrayRef:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Refupperindexpr != nil {
+			Walk(f, n.Refupperindexpr)
+		}
+		if n.Reflowerindexpr != nil {
+			Walk(f, n.Reflowerindexpr)
+		}
+		if n.Refexpr != nil {
+			Walk(f, n.Refexpr)
+		}
+		if n.Refassgnexpr != nil {
+			Walk(f, n.Refassgnexpr)
+		}
+
+	case *ast.BitString:
+		// pass
+
+	case *ast.BlockIdData:
+		// pass
+
+	case *ast.BoolExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+
+	case *ast.BooleanTest:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Arg != nil {
+			Walk(f, n.Arg)
+		}
+
+	case *ast.CaseExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Arg != nil {
+			Walk(f, n.Arg)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+		if n.Defresult != nil {
+			Walk(f, n.Defresult)
+		}
+
+	case *ast.CaseTestExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+
+	case *ast.CaseWhen:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Expr != nil {
+			Walk(f, n.Expr)
+		}
+		if n.Result != nil {
+			Walk(f, n.Result)
+		}
+
+	case *ast.CheckPointStmt:
+		// pass
+
+	case *ast.ClosePortalStmt:
+		// pass
+
+	case *ast.ClusterStmt:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+
+	case *ast.CoalesceExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+
+	case *ast.CoerceToDomain:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Arg != nil {
+			Walk(f, n.Arg)
+		}
+
+	case *ast.CoerceToDomainValue:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+
+	case *ast.CoerceViaIO:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Arg != nil {
+			Walk(f, n.Arg)
+		}
+
+	case *ast.CollateClause:
+		if n.Arg != nil {
+			Walk(f, n.Arg)
+		}
+		if n.Collname != nil {
+			Walk(f, n.Collname)
+		}
+
+	case *ast.CollateExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Arg != nil {
+			Walk(f, n.Arg)
+		}
+
+	case *ast.ColumnDef:
+		if n.TypeName != nil {
+			Walk(f, n.TypeName)
+		}
+		if n.RawDefault != nil {
+			Walk(f, n.RawDefault)
+		}
+		if n.CookedDefault != nil {
+			Walk(f, n.CookedDefault)
+		}
+		if n.CollClause != nil {
+			Walk(f, n.CollClause)
+		}
+		if n.Constraints != nil {
+			Walk(f, n.Constraints)
+		}
+		if n.Fdwoptions != nil {
+			Walk(f, n.Fdwoptions)
+		}
+
+	case *ast.ColumnRef:
+		if n.Fields != nil {
+			Walk(f, n.Fields)
+		}
+
+	case *ast.CommentStmt:
+		if n.Object != nil {
+			Walk(f, n.Object)
+		}
+
+	case *ast.CommonTableExpr:
+		if n.Aliascolnames != nil {
+			Walk(f, n.Aliascolnames)
+		}
+		if n.Ctequery != nil {
+			Walk(f, n.Ctequery)
+		}
+		if n.Ctecolnames != nil {
+			Walk(f, n.Ctecolnames)
+		}
+		if n.Ctecoltypes != nil {
+			Walk(f, n.Ctecoltypes)
+		}
+		if n.Ctecoltypmods != nil {
+			Walk(f, n.Ctecoltypmods)
+		}
+		if n.Ctecolcollations != nil {
+			Walk(f, n.Ctecolcollations)
+		}
+
+	case *ast.Const:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+
+	case *ast.Constraint:
+		if n.RawExpr != nil {
+			Walk(f, n.RawExpr)
+		}
+		if n.Keys != nil {
+			Walk(f, n.Keys)
+		}
+		if n.Exclusions != nil {
+			Walk(f, n.Exclusions)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+		if n.WhereClause != nil {
+			Walk(f, n.WhereClause)
+		}
+		if n.Pktable != nil {
+			Walk(f, n.Pktable)
+		}
+		if n.FkAttrs != nil {
+			Walk(f, n.FkAttrs)
+		}
+		if n.PkAttrs != nil {
+			Walk(f, n.PkAttrs)
+		}
+		if n.OldConpfeqop != nil {
+			Walk(f, n.OldConpfeqop)
+		}
+
+	case *ast.ConstraintsSetStmt:
+		if n.Constraints != nil {
+			Walk(f, n.Constraints)
+		}
+
+	case *ast.ConvertRowtypeExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Arg != nil {
+			Walk(f, n.Arg)
+		}
+
+	case *ast.CopyStmt:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+		if n.Query != nil {
+			Walk(f, n.Query)
+		}
+		if n.Attlist != nil {
+			Walk(f, n.Attlist)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.CreateAmStmt:
+		if n.HandlerName != nil {
+			Walk(f, n.HandlerName)
+		}
+
+	case *ast.CreateCastStmt:
+		if n.Sourcetype != nil {
+			Walk(f, n.Sourcetype)
+		}
+		if n.Targettype != nil {
+			Walk(f, n.Targettype)
+		}
+		if n.Func != nil {
+			Walk(f, n.Func)
+		}
+
+	case *ast.CreateConversionStmt:
+		if n.ConversionName != nil {
+			Walk(f, n.ConversionName)
+		}
+		if n.FuncName != nil {
+			Walk(f, n.FuncName)
+		}
+
+	case *ast.CreateDomainStmt:
+		if n.Domainname != nil {
+			Walk(f, n.Domainname)
+		}
+		if n.TypeName != nil {
+			Walk(f, n.TypeName)
+		}
+		if n.CollClause != nil {
+			Walk(f, n.CollClause)
+		}
+		if n.Constraints != nil {
+			Walk(f, n.Constraints)
+		}
+
+	case *ast.CreateEnumStmt:
+		if n.TypeName != nil {
+			Walk(f, n.TypeName)
+		}
+		if n.Vals != nil {
+			Walk(f, n.Vals)
+		}
+
+	case *ast.CreateEventTrigStmt:
+		if n.Whenclause != nil {
+			Walk(f, n.Whenclause)
+		}
+		if n.Funcname != nil {
+			Walk(f, n.Funcname)
+		}
+
+	case *ast.CreateExtensionStmt:
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.CreateFdwStmt:
+		if n.FuncOptions != nil {
+			Walk(f, n.FuncOptions)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.CreateForeignServerStmt:
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.CreateForeignTableStmt:
+		if n.Base != nil {
+			Walk(f, n.Base)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.CreateFunctionStmt:
+		if n.Func != nil {
+			Walk(f, n.Func)
+		}
+		if n.Params != nil {
+			Walk(f, n.Params)
+		}
+		if n.ReturnType != nil {
+			Walk(f, n.ReturnType)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+		if n.WithClause != nil {
+			Walk(f, n.WithClause)
+		}
+
+	case *ast.CreateOpClassItem:
+		if n.Name != nil {
+			Walk(f, n.Name)
+		}
+		if n.OrderFamily != nil {
+			Walk(f, n.OrderFamily)
+		}
+		if n.ClassArgs != nil {
+			Walk(f, n.ClassArgs)
+		}
+		if n.Storedtype != nil {
+			Walk(f, n.Storedtype)
+		}
+
+	case *ast.CreateOpClassStmt:
+		if n.Opclassname != nil {
+			Walk(f, n.Opclassname)
+		}
+		if n.Opfamilyname != nil {
+			Walk(f, n.Opfamilyname)
+		}
+		if n.Datatype != nil {
+			Walk(f, n.Datatype)
+		}
+		if n.Items != nil {
+			Walk(f, n.Items)
+		}
+
+	case *ast.CreateOpFamilyStmt:
+		if n.Opfamilyname != nil {
+			Walk(f, n.Opfamilyname)
+		}
+
+	case *ast.CreatePLangStmt:
+		if n.Plhandler != nil {
+			Walk(f, n.Plhandler)
+		}
+		if n.Plinline != nil {
+			Walk(f, n.Plinline)
+		}
+		if n.Plvalidator != nil {
+			Walk(f, n.Plvalidator)
+		}
+
+	case *ast.CreatePolicyStmt:
+		if n.Table != nil {
+			Walk(f, n.Table)
+		}
+		if n.Roles != nil {
+			Walk(f, n.Roles)
+		}
+		if n.Qual != nil {
+			Walk(f, n.Qual)
+		}
+		if n.WithCheck != nil {
+			Walk(f, n.WithCheck)
+		}
+
+	case *ast.CreatePublicationStmt:
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+		if n.Tables != nil {
+			Walk(f, n.Tables)
+		}
+
+	case *ast.CreateRangeStmt:
+		if n.TypeName != nil {
+			Walk(f, n.TypeName)
+		}
+		if n.Params != nil {
+			Walk(f, n.Params)
+		}
+
+	case *ast.CreateRoleStmt:
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.CreateSchemaStmt:
+		if n.Authrole != nil {
+			Walk(f, n.Authrole)
+		}
+		if n.SchemaElts != nil {
+			Walk(f, n.SchemaElts)
+		}
+
+	case *ast.CreateSeqStmt:
+		if n.Sequence != nil {
+			Walk(f, n.Sequence)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.CreateStatsStmt:
+		if n.Defnames != nil {
+			Walk(f, n.Defnames)
+		}
+		if n.StatTypes != nil {
+			Walk(f, n.StatTypes)
+		}
+		if n.Exprs != nil {
+			Walk(f, n.Exprs)
+		}
+		if n.Relations != nil {
+			Walk(f, n.Relations)
+		}
+
+	case *ast.CreateStmt:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+		if n.TableElts != nil {
+			Walk(f, n.TableElts)
+		}
+		if n.InhRelations != nil {
+			Walk(f, n.InhRelations)
+		}
+		if n.Partbound != nil {
+			Walk(f, n.Partbound)
+		}
+		if n.Partspec != nil {
+			Walk(f, n.Partspec)
+		}
+		if n.OfTypename != nil {
+			Walk(f, n.OfTypename)
+		}
+		if n.Constraints != nil {
+			Walk(f, n.Constraints)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.CreateSubscriptionStmt:
+		if n.Publication != nil {
+			Walk(f, n.Publication)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.CreateTableAsStmt:
+		if n.Query != nil {
+			Walk(f, n.Query)
+		}
+		if n.Into != nil {
+			Walk(f, n.Into)
+		}
+
+	case *ast.CreateTableSpaceStmt:
+		if n.Owner != nil {
+			Walk(f, n.Owner)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.CreateTransformStmt:
+		if n.TypeName != nil {
+			Walk(f, n.TypeName)
+		}
+		if n.Fromsql != nil {
+			Walk(f, n.Fromsql)
+		}
+		if n.Tosql != nil {
+			Walk(f, n.Tosql)
+		}
+
+	case *ast.CreateTrigStmt:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+		if n.Funcname != nil {
+			Walk(f, n.Funcname)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+		if n.Columns != nil {
+			Walk(f, n.Columns)
+		}
+		if n.WhenClause != nil {
+			Walk(f, n.WhenClause)
+		}
+		if n.TransitionRels != nil {
+			Walk(f, n.TransitionRels)
+		}
+		if n.Constrrel != nil {
+			Walk(f, n.Constrrel)
+		}
+
+	case *ast.CreateUserMappingStmt:
+		if n.User != nil {
+			Walk(f, n.User)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.CreatedbStmt:
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.CurrentOfExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+
+	case *ast.DeallocateStmt:
+		// pass
+
+	case *ast.DeclareCursorStmt:
+		if n.Query != nil {
+			Walk(f, n.Query)
+		}
+
+	case *ast.DefElem:
+		if n.Arg != nil {
+			Walk(f, n.Arg)
+		}
+
+	case *ast.DefineStmt:
+		if n.Defnames != nil {
+			Walk(f, n.Defnames)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+		if n.Definition != nil {
+			Walk(f, n.Definition)
+		}
+
+	case *ast.DeleteStmt:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+		if n.UsingClause != nil {
+			Walk(f, n.UsingClause)
+		}
+		if n.WhereClause != nil {
+			Walk(f, n.WhereClause)
+		}
+		if n.ReturningList != nil {
+			Walk(f, n.ReturningList)
+		}
+		if n.WithClause != nil {
+			Walk(f, n.WithClause)
+		}
+
+	case *ast.DiscardStmt:
+		// pass
+
+	case *ast.DoStmt:
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+
+	case *ast.DropOwnedStmt:
+		if n.Roles != nil {
+			Walk(f, n.Roles)
+		}
+
+	case *ast.DropRoleStmt:
+		if n.Roles != nil {
+			Walk(f, n.Roles)
+		}
+
+	case *ast.DropStmt:
+		if n.Objects != nil {
+			Walk(f, n.Objects)
+		}
+
+	case *ast.DropSubscriptionStmt:
+		// pass
+
+	case *ast.DropTableSpaceStmt:
+		// pass
+
+	case *ast.DropUserMappingStmt:
+		if n.User != nil {
+			Walk(f, n.User)
+		}
+
+	case *ast.DropdbStmt:
+		// pass
+
+	case *ast.ExecuteStmt:
+		if n.Params != nil {
+			Walk(f, n.Params)
+		}
+
+	case *ast.ExplainStmt:
+		if n.Query != nil {
+			Walk(f, n.Query)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.Expr:
+		// pass
+
+	case *ast.FetchStmt:
+		// pass
+
+	case *ast.FieldSelect:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Arg != nil {
+			Walk(f, n.Arg)
+		}
+
+	case *ast.FieldStore:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Arg != nil {
+			Walk(f, n.Arg)
+		}
+		if n.Newvals != nil {
+			Walk(f, n.Newvals)
+		}
+		if n.Fieldnums != nil {
+			Walk(f, n.Fieldnums)
+		}
+
+	case *ast.Float:
+		// pass
+
+	case *ast.FromExpr:
+		if n.Fromlist != nil {
+			Walk(f, n.Fromlist)
+		}
+		if n.Quals != nil {
+			Walk(f, n.Quals)
+		}
+
+	case *ast.FuncCall:
+		if n.Func != nil {
+			Walk(f, n.Func)
+		}
+		if n.Funcname != nil {
+			Walk(f, n.Funcname)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+		if n.AggOrder != nil {
+			Walk(f, n.AggOrder)
+		}
+		if n.AggFilter != nil {
+			Walk(f, n.AggFilter)
+		}
+		if n.Over != nil {
+			Walk(f, n.Over)
+		}
+
+	case *ast.FuncExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+
+	case *ast.FunctionParameter:
+		if n.ArgType != nil {
+			Walk(f, n.ArgType)
+		}
+		if n.Defexpr != nil {
+			Walk(f, n.Defexpr)
+		}
+
+	case *ast.GrantRoleStmt:
+		if n.GrantedRoles != nil {
+			Walk(f, n.GrantedRoles)
+		}
+		if n.GranteeRoles != nil {
+			Walk(f, n.GranteeRoles)
+		}
+		if n.Grantor != nil {
+			Walk(f, n.Grantor)
+		}
+
+	case *ast.GrantStmt:
+		if n.Objects != nil {
+			Walk(f, n.Objects)
+		}
+		if n.Privileges != nil {
+			Walk(f, n.Privileges)
+		}
+		if n.Grantees != nil {
+			Walk(f, n.Grantees)
+		}
+
+	case *ast.GroupingFunc:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+		if n.Refs != nil {
+			Walk(f, n.Refs)
+		}
+		if n.Cols != nil {
+			Walk(f, n.Cols)
+		}
+
+	case *ast.GroupingSet:
+		if n.Content != nil {
+			Walk(f, n.Content)
+		}
+
+	case *ast.ImportForeignSchemaStmt:
+		if n.TableList != nil {
+			Walk(f, n.TableList)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.IndexElem:
+		if n.Expr != nil {
+			Walk(f, n.Expr)
+		}
+		if n.Collation != nil {
+			Walk(f, n.Collation)
+		}
+		if n.Opclass != nil {
+			Walk(f, n.Opclass)
+		}
+
+	case *ast.IndexStmt:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+		if n.IndexParams != nil {
+			Walk(f, n.IndexParams)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+		if n.WhereClause != nil {
+			Walk(f, n.WhereClause)
+		}
+		if n.ExcludeOpNames != nil {
+			Walk(f, n.ExcludeOpNames)
+		}
+
+	case *ast.InferClause:
+		if n.IndexElems != nil {
+			Walk(f, n.IndexElems)
+		}
+		if n.WhereClause != nil {
+			Walk(f, n.WhereClause)
+		}
+
+	case *ast.InferenceElem:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Expr != nil {
+			Walk(f, n.Expr)
+		}
+
+	case *ast.InlineCodeBlock:
+		// pass
+
+	case *ast.InsertStmt:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+		if n.Cols != nil {
+			Walk(f, n.Cols)
+		}
+		if n.SelectStmt != nil {
+			Walk(f, n.SelectStmt)
+		}
+		if n.OnConflictClause != nil {
+			Walk(f, n.OnConflictClause)
+		}
+		if n.ReturningList != nil {
+			Walk(f, n.ReturningList)
+		}
+		if n.WithClause != nil {
+			Walk(f, n.WithClause)
+		}
+
+	case *ast.Integer:
+		// pass
+
+	case *ast.IntoClause:
+		if n.Rel != nil {
+			Walk(f, n.Rel)
+		}
+		if n.ColNames != nil {
+			Walk(f, n.ColNames)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+		if n.ViewQuery != nil {
+			Walk(f, n.ViewQuery)
+		}
+
+	case *ast.JoinExpr:
+		if n.Larg != nil {
+			Walk(f, n.Larg)
+		}
+		if n.Rarg != nil {
+			Walk(f, n.Rarg)
+		}
+		if n.UsingClause != nil {
+			Walk(f, n.UsingClause)
+		}
+		if n.Quals != nil {
+			Walk(f, n.Quals)
+		}
+		if n.Alias != nil {
+			Walk(f, n.Alias)
+		}
+
+	case *ast.ListenStmt:
+		// pass
+
+	case *ast.LoadStmt:
+		// pass
+
+	case *ast.LockStmt:
+		if n.Relations != nil {
+			Walk(f, n.Relations)
+		}
+
+	case *ast.LockingClause:
+		if n.LockedRels != nil {
+			Walk(f, n.LockedRels)
+		}
+
+	case *ast.MinMaxExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+
+	case *ast.MultiAssignRef:
+		if n.Source != nil {
+			Walk(f, n.Source)
+		}
+
+	case *ast.NamedArgExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Arg != nil {
+			Walk(f, n.Arg)
+		}
+
+	case *ast.NextValueExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+
+	case *ast.NotifyStmt:
+		// pass
+
+	case *ast.Null:
+		// pass
+
+	case *ast.NullTest:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Arg != nil {
+			Walk(f, n.Arg)
+		}
+
+	case *ast.ObjectWithArgs:
+		if n.Objname != nil {
+			Walk(f, n.Objname)
+		}
+		if n.Objargs != nil {
+			Walk(f, n.Objargs)
+		}
+
+	case *ast.OnConflictClause:
+		if n.Infer != nil {
+			Walk(f, n.Infer)
+		}
+		if n.TargetList != nil {
+			Walk(f, n.TargetList)
+		}
+		if n.WhereClause != nil {
+			Walk(f, n.WhereClause)
+		}
+
+	case *ast.OnConflictExpr:
+		if n.ArbiterElems != nil {
+			Walk(f, n.ArbiterElems)
+		}
+		if n.ArbiterWhere != nil {
+			Walk(f, n.ArbiterWhere)
+		}
+		if n.OnConflictSet != nil {
+			Walk(f, n.OnConflictSet)
+		}
+		if n.OnConflictWhere != nil {
+			Walk(f, n.OnConflictWhere)
+		}
+		if n.ExclRelTlist != nil {
+			Walk(f, n.ExclRelTlist)
+		}
+
+	case *ast.OpExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+
+	case *ast.Param:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+
+	case *ast.ParamExecData:
+		// pass
+
+	case *ast.ParamExternData:
+		// pass
+
+	case *ast.ParamListInfoData:
+		// pass
+
+	case *ast.ParamRef:
+		// pass
+
+	case *ast.PartitionBoundSpec:
+		if n.Listdatums != nil {
+			Walk(f, n.Listdatums)
+		}
+		if n.Lowerdatums != nil {
+			Walk(f, n.Lowerdatums)
+		}
+		if n.Upperdatums != nil {
+			Walk(f, n.Upperdatums)
+		}
+
+	case *ast.PartitionCmd:
+		if n.Name != nil {
+			Walk(f, n.Name)
+		}
+		if n.Bound != nil {
+			Walk(f, n.Bound)
+		}
+
+	case *ast.PartitionElem:
+		if n.Expr != nil {
+			Walk(f, n.Expr)
+		}
+		if n.Collation != nil {
+			Walk(f, n.Collation)
+		}
+		if n.Opclass != nil {
+			Walk(f, n.Opclass)
+		}
+
+	case *ast.PartitionRangeDatum:
+		if n.Value != nil {
+			Walk(f, n.Value)
+		}
+
+	case *ast.PartitionSpec:
+		if n.PartParams != nil {
+			Walk(f, n.PartParams)
+		}
+
+	case *ast.PrepareStmt:
+		if n.Argtypes != nil {
+			Walk(f, n.Argtypes)
+		}
+		if n.Query != nil {
+			Walk(f, n.Query)
+		}
+
+	case *ast.Query:
+		if n.UtilityStmt != nil {
+			Walk(f, n.UtilityStmt)
+		}
+		if n.CteList != nil {
+			Walk(f, n.CteList)
+		}
+		if n.Rtable != nil {
+			Walk(f, n.Rtable)
+		}
+		if n.Jointree != nil {
+			Walk(f, n.Jointree)
+		}
+		if n.TargetList != nil {
+			Walk(f, n.TargetList)
+		}
+		if n.OnConflict != nil {
+			Walk(f, n.OnConflict)
+		}
+		if n.ReturningList != nil {
+			Walk(f, n.ReturningList)
+		}
+		if n.GroupClause != nil {
+			Walk(f, n.GroupClause)
+		}
+		if n.GroupingSets != nil {
+			Walk(f, n.GroupingSets)
+		}
+		if n.HavingQual != nil {
+			Walk(f, n.HavingQual)
+		}
+		if n.WindowClause != nil {
+			Walk(f, n.WindowClause)
+		}
+		if n.DistinctClause != nil {
+			Walk(f, n.DistinctClause)
+		}
+		if n.SortClause != nil {
+			Walk(f, n.SortClause)
+		}
+		if n.LimitOffset != nil {
+			Walk(f, n.LimitOffset)
+		}
+		if n.LimitCount != nil {
+			Walk(f, n.LimitCount)
+		}
+		if n.RowMarks != nil {
+			Walk(f, n.RowMarks)
+		}
+		if n.SetOperations != nil {
+			Walk(f, n.SetOperations)
+		}
+		if n.ConstraintDeps != nil {
+			Walk(f, n.ConstraintDeps)
+		}
+		if n.WithCheckOptions != nil {
+			Walk(f, n.WithCheckOptions)
+		}
+
+	case *ast.RangeFunction:
+		if n.Functions != nil {
+			Walk(f, n.Functions)
+		}
+		if n.Alias != nil {
+			Walk(f, n.Alias)
+		}
+		if n.Coldeflist != nil {
+			Walk(f, n.Coldeflist)
+		}
+
+	case *ast.RangeSubselect:
+		if n.Subquery != nil {
+			Walk(f, n.Subquery)
+		}
+		if n.Alias != nil {
+			Walk(f, n.Alias)
+		}
+
+	case *ast.RangeTableFunc:
+		if n.Docexpr != nil {
+			Walk(f, n.Docexpr)
+		}
+		if n.Rowexpr != nil {
+			Walk(f, n.Rowexpr)
+		}
+		if n.Namespaces != nil {
+			Walk(f, n.Namespaces)
+		}
+		if n.Columns != nil {
+			Walk(f, n.Columns)
+		}
+		if n.Alias != nil {
+			Walk(f, n.Alias)
+		}
+
+	case *ast.RangeTableFuncCol:
+		if n.TypeName != nil {
+			Walk(f, n.TypeName)
+		}
+		if n.Colexpr != nil {
+			Walk(f, n.Colexpr)
+		}
+		if n.Coldefexpr != nil {
+			Walk(f, n.Coldefexpr)
+		}
+
+	case *ast.RangeTableSample:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+		if n.Method != nil {
+			Walk(f, n.Method)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+		if n.Repeatable != nil {
+			Walk(f, n.Repeatable)
+		}
+
+	case *ast.RangeTblEntry:
+		if n.Tablesample != nil {
+			Walk(f, n.Tablesample)
+		}
+		if n.Subquery != nil {
+			Walk(f, n.Subquery)
+		}
+		if n.Joinaliasvars != nil {
+			Walk(f, n.Joinaliasvars)
+		}
+		if n.Functions != nil {
+			Walk(f, n.Functions)
+		}
+		if n.Tablefunc != nil {
+			Walk(f, n.Tablefunc)
+		}
+		if n.ValuesLists != nil {
+			Walk(f, n.ValuesLists)
+		}
+		if n.Coltypes != nil {
+			Walk(f, n.Coltypes)
+		}
+		if n.Coltypmods != nil {
+			Walk(f, n.Coltypmods)
+		}
+		if n.Colcollations != nil {
+			Walk(f, n.Colcollations)
+		}
+		if n.Alias != nil {
+			Walk(f, n.Alias)
+		}
+		if n.Eref != nil {
+			Walk(f, n.Eref)
+		}
+		if n.SecurityQuals != nil {
+			Walk(f, n.SecurityQuals)
+		}
+
+	case *ast.RangeTblFunction:
+		if n.Funcexpr != nil {
+			Walk(f, n.Funcexpr)
+		}
+		if n.Funccolnames != nil {
+			Walk(f, n.Funccolnames)
+		}
+		if n.Funccoltypes != nil {
+			Walk(f, n.Funccoltypes)
+		}
+		if n.Funccoltypmods != nil {
+			Walk(f, n.Funccoltypmods)
+		}
+		if n.Funccolcollations != nil {
+			Walk(f, n.Funccolcollations)
+		}
+
+	case *ast.RangeTblRef:
+		// pass
+
+	case *ast.RangeVar:
+		if n.Alias != nil {
+			Walk(f, n.Alias)
+		}
+
+	case *ast.RawStmt:
+		if n.Stmt != nil {
+			Walk(f, n.Stmt)
+		}
+
+	case *ast.ReassignOwnedStmt:
+		if n.Roles != nil {
+			Walk(f, n.Roles)
+		}
+		if n.Newrole != nil {
+			Walk(f, n.Newrole)
+		}
+
+	case *ast.RefreshMatViewStmt:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+
+	case *ast.ReindexStmt:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+
+	case *ast.RelabelType:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Arg != nil {
+			Walk(f, n.Arg)
+		}
+
+	case *ast.RenameStmt:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+		if n.Object != nil {
+			Walk(f, n.Object)
+		}
+
+	case *ast.ReplicaIdentityStmt:
+		// pass
+
+	case *ast.ResTarget:
+		if n.Indirection != nil {
+			Walk(f, n.Indirection)
+		}
+		if n.Val != nil {
+			Walk(f, n.Val)
+		}
+
+	case *ast.RoleSpec:
+		// pass
+
+	case *ast.RowCompareExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Opnos != nil {
+			Walk(f, n.Opnos)
+		}
+		if n.Opfamilies != nil {
+			Walk(f, n.Opfamilies)
+		}
+		if n.Inputcollids != nil {
+			Walk(f, n.Inputcollids)
+		}
+		if n.Largs != nil {
+			Walk(f, n.Largs)
+		}
+		if n.Rargs != nil {
+			Walk(f, n.Rargs)
+		}
+
+	case *ast.RowExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+		if n.Colnames != nil {
+			Walk(f, n.Colnames)
+		}
+
+	case *ast.RowMarkClause:
+		// pass
+
+	case *ast.RuleStmt:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+		if n.WhereClause != nil {
+			Walk(f, n.WhereClause)
+		}
+		if n.Actions != nil {
+			Walk(f, n.Actions)
+		}
+
+	case *ast.SQLValueFunction:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+
+	case *ast.ScalarArrayOpExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+
+	case *ast.SecLabelStmt:
+		if n.Object != nil {
+			Walk(f, n.Object)
+		}
+
+	case *ast.SelectStmt:
+		if n.DistinctClause != nil {
+			Walk(f, n.DistinctClause)
+		}
+		if n.IntoClause != nil {
+			Walk(f, n.IntoClause)
+		}
+		if n.TargetList != nil {
+			Walk(f, n.TargetList)
+		}
+		if n.FromClause != nil {
+			Walk(f, n.FromClause)
+		}
+		if n.WhereClause != nil {
+			Walk(f, n.WhereClause)
+		}
+		if n.GroupClause != nil {
+			Walk(f, n.GroupClause)
+		}
+		if n.HavingClause != nil {
+			Walk(f, n.HavingClause)
+		}
+		if n.WindowClause != nil {
+			Walk(f, n.WindowClause)
+		}
+		if n.ValuesLists != nil {
+			Walk(f, n.ValuesLists)
+		}
+		if n.SortClause != nil {
+			Walk(f, n.SortClause)
+		}
+		if n.LimitOffset != nil {
+			Walk(f, n.LimitOffset)
+		}
+		if n.LimitCount != nil {
+			Walk(f, n.LimitCount)
+		}
+		if n.LockingClause != nil {
+			Walk(f, n.LockingClause)
+		}
+		if n.WithClause != nil {
+			Walk(f, n.WithClause)
+		}
+		if n.Larg != nil {
+			Walk(f, n.Larg)
+		}
+		if n.Rarg != nil {
+			Walk(f, n.Rarg)
+		}
+
+	case *ast.SetOperationStmt:
+		if n.Larg != nil {
+			Walk(f, n.Larg)
+		}
+		if n.Rarg != nil {
+			Walk(f, n.Rarg)
+		}
+		if n.ColTypes != nil {
+			Walk(f, n.ColTypes)
+		}
+		if n.ColTypmods != nil {
+			Walk(f, n.ColTypmods)
+		}
+		if n.ColCollations != nil {
+			Walk(f, n.ColCollations)
+		}
+		if n.GroupClauses != nil {
+			Walk(f, n.GroupClauses)
+		}
+
+	case *ast.SetToDefault:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+
+	case *ast.SortBy:
+		if n.Node != nil {
+			Walk(f, n.Node)
+		}
+		if n.UseOp != nil {
+			Walk(f, n.UseOp)
+		}
+
+	case *ast.SortGroupClause:
+		// pass
+
+	case *ast.String:
+		// pass
+
+	case *ast.SubLink:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Testexpr != nil {
+			Walk(f, n.Testexpr)
+		}
+		if n.OperName != nil {
+			Walk(f, n.OperName)
+		}
+		if n.Subselect != nil {
+			Walk(f, n.Subselect)
+		}
+
+	case *ast.SubPlan:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Testexpr != nil {
+			Walk(f, n.Testexpr)
+		}
+		if n.ParamIds != nil {
+			Walk(f, n.ParamIds)
+		}
+		if n.SetParam != nil {
+			Walk(f, n.SetParam)
+		}
+		if n.ParParam != nil {
+			Walk(f, n.ParParam)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+
+	case *ast.TableFunc:
+		if n.NsUris != nil {
+			Walk(f, n.NsUris)
+		}
+		if n.NsNames != nil {
+			Walk(f, n.NsNames)
+		}
+		if n.Docexpr != nil {
+			Walk(f, n.Docexpr)
+		}
+		if n.Rowexpr != nil {
+			Walk(f, n.Rowexpr)
+		}
+		if n.Colnames != nil {
+			Walk(f, n.Colnames)
+		}
+		if n.Coltypes != nil {
+			Walk(f, n.Coltypes)
+		}
+		if n.Coltypmods != nil {
+			Walk(f, n.Coltypmods)
+		}
+		if n.Colcollations != nil {
+			Walk(f, n.Colcollations)
+		}
+		if n.Colexprs != nil {
+			Walk(f, n.Colexprs)
+		}
+		if n.Coldefexprs != nil {
+			Walk(f, n.Coldefexprs)
+		}
+
+	case *ast.TableLikeClause:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+
+	case *ast.TableSampleClause:
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+		if n.Repeatable != nil {
+			Walk(f, n.Repeatable)
+		}
+
+	case *ast.TargetEntry:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Expr != nil {
+			Walk(f, n.Expr)
+		}
+
+	case *ast.TransactionStmt:
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.TriggerTransition:
+		// pass
+
+	case *ast.TruncateStmt:
+		if n.Relations != nil {
+			Walk(f, n.Relations)
+		}
+
+	case *ast.TypeCast:
+		if n.Arg != nil {
+			Walk(f, n.Arg)
+		}
+		if n.TypeName != nil {
+			Walk(f, n.TypeName)
+		}
+
 	case *ast.TypeName:
+		if n.Names != nil {
+			Walk(f, n.Names)
+		}
+		if n.Typmods != nil {
+			Walk(f, n.Typmods)
+		}
+		if n.ArrayBounds != nil {
+			Walk(f, n.ArrayBounds)
+		}
+
+	case *ast.UnlistenStmt:
 		// pass
 
-	case *pg.A_ArrayExpr:
-		walkn(f, n.Elements)
+	case *ast.UpdateStmt:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+		if n.TargetList != nil {
+			Walk(f, n.TargetList)
+		}
+		if n.WhereClause != nil {
+			Walk(f, n.WhereClause)
+		}
+		if n.FromClause != nil {
+			Walk(f, n.FromClause)
+		}
+		if n.ReturningList != nil {
+			Walk(f, n.ReturningList)
+		}
+		if n.WithClause != nil {
+			Walk(f, n.WithClause)
+		}
 
-	case *pg.A_Const:
-		walkn(f, n.Val)
+	case *ast.VacuumStmt:
+		if n.Relation != nil {
+			Walk(f, n.Relation)
+		}
+		if n.VaCols != nil {
+			Walk(f, n.VaCols)
+		}
 
-	case *pg.A_Expr:
-		walkn(f, n.Name)
-		walkn(f, n.Lexpr)
-		walkn(f, n.Rexpr)
+	case *ast.Var:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
 
-	case *pg.A_Indices:
-		walkn(f, n.Lidx)
-		walkn(f, n.Uidx)
+	case *ast.VariableSetStmt:
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
 
-	case *pg.A_Indirection:
-		walkn(f, n.Arg)
-		walkn(f, n.Indirection)
-
-	case *pg.A_Star:
+	case *ast.VariableShowStmt:
 		// pass
 
-	case *pg.AccessPriv:
-		walkn(f, n.Cols)
-
-	case *pg.Aggref:
-		walkn(f, n.Xpr)
-		walkn(f, n.Aggargtypes)
-		walkn(f, n.Aggdirectargs)
-		walkn(f, n.Args)
-		walkn(f, n.Aggorder)
-		walkn(f, n.Aggdistinct)
-		walkn(f, n.Aggfilter)
-
-	case *pg.Alias:
-		walkn(f, n.Colnames)
-
-	case *pg.AlterCollationStmt:
-		walkn(f, n.Collname)
-
-	case *pg.AlterDatabaseSetStmt:
-		walkn(f, n.Setstmt)
-
-	case *pg.AlterDatabaseStmt:
-		walkn(f, n.Options)
-
-	case *pg.AlterDefaultPrivilegesStmt:
-		walkn(f, n.Options)
-		walkn(f, n.Action)
-
-	case *pg.AlterDomainStmt:
-		walkn(f, n.TypeName)
-		walkn(f, n.Def)
-
-	case *pg.AlterEnumStmt:
-		walkn(f, n.TypeName)
-
-	case *pg.AlterEventTrigStmt:
-		// pass
-
-	case *pg.AlterExtensionContentsStmt:
-		walkn(f, n.Object)
-
-	case *pg.AlterExtensionStmt:
-		walkn(f, n.Options)
-
-	case *pg.AlterFdwStmt:
-		walkn(f, n.FuncOptions)
-		walkn(f, n.Options)
-
-	case *pg.AlterForeignServerStmt:
-		walkn(f, n.Options)
-
-	case *pg.AlterFunctionStmt:
-		walkn(f, n.Func)
-		walkn(f, n.Actions)
-
-	case *pg.AlterObjectDependsStmt:
-		walkn(f, n.Relation)
-		walkn(f, n.Object)
-		walkn(f, n.Extname)
-
-	case *pg.AlterObjectSchemaStmt:
-		walkn(f, n.Relation)
-		walkn(f, n.Object)
-
-	case *pg.AlterOpFamilyStmt:
-		walkn(f, n.Opfamilyname)
-		walkn(f, n.Items)
-
-	case *pg.AlterOperatorStmt:
-		walkn(f, n.Opername)
-		walkn(f, n.Options)
-
-	case *pg.AlterOwnerStmt:
-		walkn(f, n.Relation)
-		walkn(f, n.Object)
-		walkn(f, n.Newowner)
-
-	case *pg.AlterPolicyStmt:
-		walkn(f, n.Table)
-		walkn(f, n.Roles)
-		walkn(f, n.Qual)
-		walkn(f, n.WithCheck)
-
-	case *pg.AlterPublicationStmt:
-		walkn(f, n.Options)
-		walkn(f, n.Tables)
-
-	case *pg.AlterRoleSetStmt:
-		walkn(f, n.Role)
-		walkn(f, n.Setstmt)
-
-	case *pg.AlterRoleStmt:
-		walkn(f, n.Role)
-		walkn(f, n.Options)
-
-	case *pg.AlterSeqStmt:
-		walkn(f, n.Sequence)
-		walkn(f, n.Options)
-
-	case *pg.AlterSubscriptionStmt:
-		walkn(f, n.Publication)
-		walkn(f, n.Options)
-
-	case *pg.AlterSystemStmt:
-		walkn(f, n.Setstmt)
-
-	case *pg.AlterTSConfigurationStmt:
-		walkn(f, n.Cfgname)
-		walkn(f, n.Tokentype)
-		walkn(f, n.Dicts)
-
-	case *pg.AlterTSDictionaryStmt:
-		walkn(f, n.Dictname)
-		walkn(f, n.Options)
-
-	case *pg.AlterTableCmd:
-		walkn(f, n.Newowner)
-		walkn(f, n.Def)
-
-	case *pg.AlterTableMoveAllStmt:
-		walkn(f, n.Roles)
-
-	case *pg.AlterTableSpaceOptionsStmt:
-		walkn(f, n.Options)
-
-	case *pg.AlterTableStmt:
-		walkn(f, n.Relation)
-		walkn(f, n.Cmds)
-
-	case *pg.AlterUserMappingStmt:
-		walkn(f, n.User)
-		walkn(f, n.Options)
-
-	case *pg.AlternativeSubPlan:
-		walkn(f, n.Xpr)
-		walkn(f, n.Subplans)
-
-	case *pg.ArrayCoerceExpr:
-		walkn(f, n.Xpr)
-		walkn(f, n.Arg)
-
-	case *pg.ArrayExpr:
-		walkn(f, n.Xpr)
-		walkn(f, n.Elements)
-
-	case *pg.ArrayRef:
-		walkn(f, n.Xpr)
-		walkn(f, n.Refupperindexpr)
-		walkn(f, n.Reflowerindexpr)
-		walkn(f, n.Refexpr)
-		walkn(f, n.Refassgnexpr)
-
-	case *pg.BitString:
-		// pass
-
-	case *pg.BlockIdData:
-		// pass
-
-	case *pg.BoolExpr:
-		walkn(f, n.Xpr)
-		walkn(f, n.Args)
-
-	case *pg.BooleanTest:
-		walkn(f, n.Xpr)
-		walkn(f, n.Arg)
-
-	case *pg.CaseExpr:
-		walkn(f, n.Xpr)
-		walkn(f, n.Arg)
-		walkn(f, n.Args)
-		walkn(f, n.Defresult)
-
-	case *pg.CaseTestExpr:
-		walkn(f, n.Xpr)
-
-	case *pg.CaseWhen:
-		walkn(f, n.Xpr)
-		walkn(f, n.Expr)
-		walkn(f, n.Result)
-
-	case *pg.CheckPointStmt:
-		// pass
-
-	case *pg.ClosePortalStmt:
-		// pass
-
-	case *pg.ClusterStmt:
-		walkn(f, n.Relation)
-
-	case *pg.CoalesceExpr:
-		walkn(f, n.Xpr)
-		walkn(f, n.Args)
-
-	case *pg.CoerceToDomain:
-		walkn(f, n.Xpr)
-		walkn(f, n.Arg)
-
-	case *pg.CoerceToDomainValue:
-		walkn(f, n.Xpr)
-
-	case *pg.CoerceViaIO:
-		walkn(f, n.Xpr)
-		walkn(f, n.Arg)
-
-	case *pg.CollateClause:
-		walkn(f, n.Arg)
-		walkn(f, n.Collname)
-
-	case *pg.CollateExpr:
-		walkn(f, n.Xpr)
-		walkn(f, n.Arg)
-
-	case *pg.ColumnDef:
-		walkn(f, n.TypeName)
-		walkn(f, n.RawDefault)
-		walkn(f, n.CookedDefault)
-		walkn(f, n.CollClause)
-		walkn(f, n.Constraints)
-		walkn(f, n.Fdwoptions)
-
-	case *pg.ColumnRef:
-		walkn(f, n.Fields)
-
-	case *pg.CommentStmt:
-		walkn(f, n.Object)
-
-	case *pg.CommonTableExpr:
-		walkn(f, n.Aliascolnames)
-		walkn(f, n.Ctequery)
-		walkn(f, n.Ctecolnames)
-		walkn(f, n.Ctecoltypes)
-		walkn(f, n.Ctecoltypmods)
-		walkn(f, n.Ctecolcollations)
-
-	case *pg.CompositeTypeStmt:
-		walkn(f, n.Typevar)
-		walkn(f, n.Coldeflist)
-
-	case *pg.Const:
-		walkn(f, n.Xpr)
-
-	case *pg.Constraint:
-		walkn(f, n.RawExpr)
-		walkn(f, n.Keys)
-		walkn(f, n.Exclusions)
-		walkn(f, n.Options)
-		walkn(f, n.WhereClause)
-		walkn(f, n.Pktable)
-		walkn(f, n.FkAttrs)
-		walkn(f, n.PkAttrs)
-		walkn(f, n.OldConpfeqop)
-
-	case *pg.ConstraintsSetStmt:
-		walkn(f, n.Constraints)
-
-	case *pg.ConvertRowtypeExpr:
-		walkn(f, n.Xpr)
-		walkn(f, n.Arg)
-
-	case *pg.CopyStmt:
-		walkn(f, n.Relation)
-		walkn(f, n.Query)
-		walkn(f, n.Attlist)
-		walkn(f, n.Options)
-
-	case *pg.CreateAmStmt:
-		walkn(f, n.HandlerName)
-
-	case *pg.CreateCastStmt:
-		walkn(f, n.Sourcetype)
-		walkn(f, n.Targettype)
-		walkn(f, n.Func)
-
-	case *pg.CreateConversionStmt:
-		walkn(f, n.ConversionName)
-		walkn(f, n.FuncName)
-
-	case *pg.CreateDomainStmt:
-		walkn(f, n.Domainname)
-		walkn(f, n.TypeName)
-		walkn(f, n.CollClause)
-		walkn(f, n.Constraints)
-
-	case *pg.CreateEnumStmt:
-		walkn(f, n.TypeName)
-		walkn(f, n.Vals)
-
-	case *pg.CreateEventTrigStmt:
-		walkn(f, n.Whenclause)
-		walkn(f, n.Funcname)
-
-	case *pg.CreateExtensionStmt:
-		walkn(f, n.Options)
-
-	case *pg.CreateFdwStmt:
-		walkn(f, n.FuncOptions)
-		walkn(f, n.Options)
-
-	case *pg.CreateForeignServerStmt:
-		walkn(f, n.Options)
-
-	case *pg.CreateForeignTableStmt:
-		walkn(f, n.Base)
-		walkn(f, n.Options)
-
-	case *pg.CreateFunctionStmt:
-		walkn(f, n.Funcname)
-		walkn(f, n.Parameters)
-		walkn(f, n.ReturnType)
-		walkn(f, n.Options)
-		walkn(f, n.WithClause)
-
-	case *pg.CreateOpClassItem:
-		walkn(f, n.Name)
-		walkn(f, n.OrderFamily)
-		walkn(f, n.ClassArgs)
-		walkn(f, n.Storedtype)
-
-	case *pg.CreateOpClassStmt:
-		walkn(f, n.Opclassname)
-		walkn(f, n.Opfamilyname)
-		walkn(f, n.Datatype)
-		walkn(f, n.Items)
-
-	case *pg.CreateOpFamilyStmt:
-		walkn(f, n.Opfamilyname)
-
-	case *pg.CreatePLangStmt:
-		walkn(f, n.Plhandler)
-		walkn(f, n.Plinline)
-		walkn(f, n.Plvalidator)
-
-	case *pg.CreatePolicyStmt:
-		walkn(f, n.Table)
-		walkn(f, n.Roles)
-		walkn(f, n.Qual)
-		walkn(f, n.WithCheck)
-
-	case *pg.CreatePublicationStmt:
-		walkn(f, n.Options)
-		walkn(f, n.Tables)
-
-	case *pg.CreateRangeStmt:
-		walkn(f, n.TypeName)
-		walkn(f, n.Params)
-
-	case *pg.CreateRoleStmt:
-		walkn(f, n.Options)
-
-	case *pg.CreateSchemaStmt:
-		walkn(f, n.Authrole)
-		walkn(f, n.SchemaElts)
-
-	case *pg.CreateSeqStmt:
-		walkn(f, n.Sequence)
-		walkn(f, n.Options)
-
-	case *pg.CreateStatsStmt:
-		walkn(f, n.Defnames)
-		walkn(f, n.StatTypes)
-		walkn(f, n.Exprs)
-		walkn(f, n.Relations)
-
-	case *pg.CreateStmt:
-		walkn(f, n.Relation)
-		walkn(f, n.TableElts)
-		walkn(f, n.InhRelations)
-		walkn(f, n.Partbound)
-		walkn(f, n.Partspec)
-		walkn(f, n.OfTypename)
-		walkn(f, n.Constraints)
-		walkn(f, n.Options)
-
-	case *pg.CreateSubscriptionStmt:
-		walkn(f, n.Publication)
-		walkn(f, n.Options)
-
-	case *pg.CreateTableAsStmt:
-		walkn(f, n.Query)
-		walkn(f, n.Into)
-
-	case *pg.CreateTableSpaceStmt:
-		walkn(f, n.Owner)
-		walkn(f, n.Options)
-
-	case *pg.CreateTransformStmt:
-		walkn(f, n.TypeName)
-		walkn(f, n.Fromsql)
-		walkn(f, n.Tosql)
-
-	case *pg.CreateTrigStmt:
-		walkn(f, n.Relation)
-		walkn(f, n.Funcname)
-		walkn(f, n.Args)
-		walkn(f, n.Columns)
-		walkn(f, n.WhenClause)
-		walkn(f, n.TransitionRels)
-		walkn(f, n.Constrrel)
-
-	case *pg.CreateUserMappingStmt:
-		walkn(f, n.User)
-		walkn(f, n.Options)
-
-	case *pg.CreatedbStmt:
-		walkn(f, n.Options)
-
-	case *pg.CurrentOfExpr:
-		walkn(f, n.Xpr)
-
-	case *pg.DeallocateStmt:
-		// pass
-
-	case *pg.DeclareCursorStmt:
-		walkn(f, n.Query)
-
-	case *pg.DefElem:
-		walkn(f, n.Arg)
-
-	case *pg.DefineStmt:
-		walkn(f, n.Defnames)
-		walkn(f, n.Args)
-		walkn(f, n.Definition)
-
-	case *pg.DeleteStmt:
-		walkn(f, n.Relation)
-		walkn(f, n.UsingClause)
-		walkn(f, n.WhereClause)
-		walkn(f, n.ReturningList)
-		walkn(f, n.WithClause)
-
-	case *pg.DiscardStmt:
-		// pass
-
-	case *pg.DoStmt:
-		walkn(f, n.Args)
-
-	case *pg.DropOwnedStmt:
-		walkn(f, n.Roles)
-
-	case *pg.DropRoleStmt:
-		walkn(f, n.Roles)
-
-	case *pg.DropStmt:
-		walkn(f, n.Objects)
-
-	case *pg.DropSubscriptionStmt:
-		// pass
-
-	case *pg.DropTableSpaceStmt:
-		// pass
-
-	case *pg.DropUserMappingStmt:
-		walkn(f, n.User)
-
-	case *pg.DropdbStmt:
-		// pass
-
-	case *pg.ExecuteStmt:
-		walkn(f, n.Params)
-
-	case *pg.ExplainStmt:
-		walkn(f, n.Query)
-		walkn(f, n.Options)
-
-	case *pg.Expr:
-		// pass
-
-	case *pg.FetchStmt:
-		// pass
-
-	case *pg.FieldSelect:
-		walkn(f, n.Xpr)
-		walkn(f, n.Arg)
-
-	case *pg.FieldStore:
-		walkn(f, n.Xpr)
-		walkn(f, n.Arg)
-		walkn(f, n.Newvals)
-		walkn(f, n.Fieldnums)
-
-	case *pg.Float:
-		// pass
-
-	case *pg.FromExpr:
-		walkn(f, n.Fromlist)
-		walkn(f, n.Quals)
-
-	case *pg.FuncCall:
-		walkn(f, n.Funcname)
-		walkn(f, n.Args)
-		walkn(f, n.AggOrder)
-		walkn(f, n.AggFilter)
-		walkn(f, n.Over)
-
-	case *pg.FuncExpr:
-		walkn(f, n.Xpr)
-		walkn(f, n.Args)
-
-	case *pg.FunctionParameter:
-		walkn(f, n.ArgType)
-		walkn(f, n.Defexpr)
-
-	case *pg.GrantRoleStmt:
-		walkn(f, n.GrantedRoles)
-		walkn(f, n.GranteeRoles)
-		walkn(f, n.Grantor)
-
-	case *pg.GrantStmt:
-		walkn(f, n.Objects)
-		walkn(f, n.Privileges)
-		walkn(f, n.Grantees)
-
-	case *pg.GroupingFunc:
-		walkn(f, n.Xpr)
-		walkn(f, n.Args)
-		walkn(f, n.Refs)
-		walkn(f, n.Cols)
-
-	case *pg.GroupingSet:
-		walkn(f, n.Content)
-
-	case *pg.ImportForeignSchemaStmt:
-		walkn(f, n.TableList)
-		walkn(f, n.Options)
-
-	case *pg.IndexElem:
-		walkn(f, n.Expr)
-		walkn(f, n.Collation)
-		walkn(f, n.Opclass)
-
-	case *pg.IndexStmt:
-		walkn(f, n.Relation)
-		walkn(f, n.IndexParams)
-		walkn(f, n.Options)
-		walkn(f, n.WhereClause)
-		walkn(f, n.ExcludeOpNames)
-
-	case *pg.InferClause:
-		walkn(f, n.IndexElems)
-		walkn(f, n.WhereClause)
-
-	case *pg.InferenceElem:
-		walkn(f, n.Xpr)
-		walkn(f, n.Expr)
-
-	case *pg.InlineCodeBlock:
-		// pass
-
-	case *pg.InsertStmt:
-		walkn(f, n.Relation)
-		walkn(f, n.Cols)
-		walkn(f, n.SelectStmt)
-		walkn(f, n.OnConflictClause)
-		walkn(f, n.ReturningList)
-		walkn(f, n.WithClause)
-
-	case *pg.Integer:
-		// pass
-
-	case *pg.IntoClause:
-		walkn(f, n.Rel)
-		walkn(f, n.ColNames)
-		walkn(f, n.Options)
-		walkn(f, n.ViewQuery)
-
-	case *pg.JoinExpr:
-		walkn(f, n.Larg)
-		walkn(f, n.Rarg)
-		walkn(f, n.UsingClause)
-		walkn(f, n.Quals)
-		walkn(f, n.Alias)
-
-	case *pg.ListenStmt:
-		// pass
-
-	case *pg.LoadStmt:
-		// pass
-
-	case *pg.LockStmt:
-		walkn(f, n.Relations)
-
-	case *pg.LockingClause:
-		walkn(f, n.LockedRels)
-
-	case *pg.MinMaxExpr:
-		walkn(f, n.Xpr)
-		walkn(f, n.Args)
-
-	case *pg.MultiAssignRef:
-		walkn(f, n.Source)
-
-	case *pg.NamedArgExpr:
-		walkn(f, n.Xpr)
-		walkn(f, n.Arg)
-
-	case *pg.NextValueExpr:
-		walkn(f, n.Xpr)
-
-	case *pg.NotifyStmt:
-		// pass
-
-	case *pg.Null:
-		// pass
-
-	case *pg.NullTest:
-		walkn(f, n.Xpr)
-		walkn(f, n.Arg)
-
-	case *pg.ObjectWithArgs:
-		walkn(f, n.Objname)
-		walkn(f, n.Objargs)
-
-	case *pg.OnConflictClause:
-		walkn(f, n.Infer)
-		walkn(f, n.TargetList)
-		walkn(f, n.WhereClause)
-
-	case *pg.OnConflictExpr:
-		walkn(f, n.ArbiterElems)
-		walkn(f, n.ArbiterWhere)
-		walkn(f, n.OnConflictSet)
-		walkn(f, n.OnConflictWhere)
-		walkn(f, n.ExclRelTlist)
-
-	case *pg.OpExpr:
-		walkn(f, n.Xpr)
-		walkn(f, n.Args)
-
-	case *pg.Param:
-		walkn(f, n.Xpr)
-
-	case *pg.ParamExecData:
-		// pass
-
-	case *pg.ParamExternData:
-		// pass
-
-	case *pg.ParamListInfoData:
-		// pass
-
-	case *pg.ParamRef:
-		// pass
-
-	case *pg.PartitionBoundSpec:
-		walkn(f, n.Listdatums)
-		walkn(f, n.Lowerdatums)
-		walkn(f, n.Upperdatums)
-
-	case *pg.PartitionCmd:
-		walkn(f, n.Name)
-		walkn(f, n.Bound)
-
-	case *pg.PartitionElem:
-		walkn(f, n.Expr)
-		walkn(f, n.Collation)
-		walkn(f, n.Opclass)
-
-	case *pg.PartitionRangeDatum:
-		walkn(f, n.Value)
-
-	case *pg.PartitionSpec:
-		walkn(f, n.PartParams)
-
-	case *pg.PrepareStmt:
-		walkn(f, n.Argtypes)
-		walkn(f, n.Query)
-
-	case *pg.Query:
-		walkn(f, n.UtilityStmt)
-		walkn(f, n.CteList)
-		walkn(f, n.Rtable)
-		walkn(f, n.Jointree)
-		walkn(f, n.TargetList)
-		walkn(f, n.OnConflict)
-		walkn(f, n.ReturningList)
-		walkn(f, n.GroupClause)
-		walkn(f, n.GroupingSets)
-		walkn(f, n.HavingQual)
-		walkn(f, n.WindowClause)
-		walkn(f, n.DistinctClause)
-		walkn(f, n.SortClause)
-		walkn(f, n.LimitOffset)
-		walkn(f, n.LimitCount)
-		walkn(f, n.RowMarks)
-		walkn(f, n.SetOperations)
-		walkn(f, n.ConstraintDeps)
-		walkn(f, n.WithCheckOptions)
-
-	case *pg.RangeFunction:
-		walkn(f, n.Functions)
-		walkn(f, n.Alias)
-		walkn(f, n.Coldeflist)
-
-	case *pg.RangeSubselect:
-		walkn(f, n.Subquery)
-		walkn(f, n.Alias)
-
-	case *pg.RangeTableFunc:
-		walkn(f, n.Docexpr)
-		walkn(f, n.Rowexpr)
-		walkn(f, n.Namespaces)
-		walkn(f, n.Columns)
-		walkn(f, n.Alias)
-
-	case *pg.RangeTableFuncCol:
-		walkn(f, n.TypeName)
-		walkn(f, n.Colexpr)
-		walkn(f, n.Coldefexpr)
-
-	case *pg.RangeTableSample:
-		walkn(f, n.Relation)
-		walkn(f, n.Method)
-		walkn(f, n.Args)
-		walkn(f, n.Repeatable)
-
-	case *pg.RangeTblEntry:
-		walkn(f, n.Tablesample)
-		walkn(f, n.Subquery)
-		walkn(f, n.Joinaliasvars)
-		walkn(f, n.Functions)
-		walkn(f, n.Tablefunc)
-		walkn(f, n.ValuesLists)
-		walkn(f, n.Coltypes)
-		walkn(f, n.Coltypmods)
-		walkn(f, n.Colcollations)
-		walkn(f, n.Alias)
-		walkn(f, n.Eref)
-		walkn(f, n.SecurityQuals)
-
-	case *pg.RangeTblFunction:
-		walkn(f, n.Funcexpr)
-		walkn(f, n.Funccolnames)
-		walkn(f, n.Funccoltypes)
-		walkn(f, n.Funccoltypmods)
-		walkn(f, n.Funccolcollations)
-
-	case *pg.RangeTblRef:
-		// pass
-
-	case *pg.RangeVar:
-		walkn(f, n.Alias)
-
-	case *pg.RawStmt:
-		walkn(f, n.Stmt)
-
-	case *pg.ReassignOwnedStmt:
-		walkn(f, n.Roles)
-		walkn(f, n.Newrole)
-
-	case *pg.RefreshMatViewStmt:
-		walkn(f, n.Relation)
-
-	case *pg.ReindexStmt:
-		walkn(f, n.Relation)
-
-	case *pg.RelabelType:
-		walkn(f, n.Xpr)
-		walkn(f, n.Arg)
-
-	case *pg.RenameStmt:
-		walkn(f, n.Relation)
-		walkn(f, n.Object)
-
-	case *pg.ReplicaIdentityStmt:
-		// pass
-
-	case *pg.ResTarget:
-		walkn(f, n.Indirection)
-		walkn(f, n.Val)
-
-	case *pg.RoleSpec:
-		// pass
-
-	case *pg.RowCompareExpr:
-		walkn(f, n.Xpr)
-		walkn(f, n.Opnos)
-		walkn(f, n.Opfamilies)
-		walkn(f, n.Inputcollids)
-		walkn(f, n.Largs)
-		walkn(f, n.Rargs)
-
-	case *pg.RowExpr:
-		walkn(f, n.Xpr)
-		walkn(f, n.Args)
-		walkn(f, n.Colnames)
-
-	case *pg.RowMarkClause:
-		// pass
-
-	case *pg.RuleStmt:
-		walkn(f, n.Relation)
-		walkn(f, n.WhereClause)
-		walkn(f, n.Actions)
-
-	case *pg.SQLValueFunction:
-		walkn(f, n.Xpr)
-
-	case *pg.ScalarArrayOpExpr:
-		walkn(f, n.Xpr)
-		walkn(f, n.Args)
-
-	case *pg.SecLabelStmt:
-		walkn(f, n.Object)
-
-	case *pg.SelectStmt:
-		walkn(f, n.DistinctClause)
-		walkn(f, n.IntoClause)
-		walkn(f, n.TargetList)
-		walkn(f, n.FromClause)
-		walkn(f, n.WhereClause)
-		walkn(f, n.GroupClause)
-		walkn(f, n.HavingClause)
-		walkn(f, n.WindowClause)
-		walkn(f, n.SortClause)
-		walkn(f, n.LimitOffset)
-		walkn(f, n.LimitCount)
-		walkn(f, n.LockingClause)
-		walkn(f, n.WithClause)
-		walkn(f, n.Larg)
-		walkn(f, n.Rarg)
-
-	case *pg.SetOperationStmt:
-		walkn(f, n.Larg)
-		walkn(f, n.Rarg)
-		walkn(f, n.ColTypes)
-		walkn(f, n.ColTypmods)
-		walkn(f, n.ColCollations)
-		walkn(f, n.GroupClauses)
-
-	case *pg.SetToDefault:
-		walkn(f, n.Xpr)
-
-	case *pg.SortBy:
-		walkn(f, n.Node)
-		walkn(f, n.UseOp)
-
-	case *pg.SortGroupClause:
-		// pass
-
-	case *pg.String:
-		// pass
-
-	case *pg.SubLink:
-		walkn(f, n.Xpr)
-		walkn(f, n.Testexpr)
-		walkn(f, n.OperName)
-		walkn(f, n.Subselect)
-
-	case *pg.SubPlan:
-		walkn(f, n.Xpr)
-		walkn(f, n.Testexpr)
-		walkn(f, n.ParamIds)
-		walkn(f, n.SetParam)
-		walkn(f, n.ParParam)
-		walkn(f, n.Args)
-
-	case *pg.TableFunc:
-		walkn(f, n.NsUris)
-		walkn(f, n.NsNames)
-		walkn(f, n.Docexpr)
-		walkn(f, n.Rowexpr)
-		walkn(f, n.Colnames)
-		walkn(f, n.Coltypes)
-		walkn(f, n.Coltypmods)
-		walkn(f, n.Colcollations)
-		walkn(f, n.Colexprs)
-		walkn(f, n.Coldefexprs)
-
-	case *pg.TableLikeClause:
-		walkn(f, n.Relation)
-
-	case *pg.TableSampleClause:
-		walkn(f, n.Args)
-		walkn(f, n.Repeatable)
-
-	case *pg.TargetEntry:
-		walkn(f, n.Xpr)
-		walkn(f, n.Expr)
-
-	case *pg.TransactionStmt:
-		walkn(f, n.Options)
-
-	case *pg.TriggerTransition:
-		// pass
-
-	case *pg.TruncateStmt:
-		walkn(f, n.Relations)
-
-	case *pg.TypeCast:
-		walkn(f, n.Arg)
-		walkn(f, n.TypeName)
-
-	case *pg.TypeName:
-		walkn(f, n.Names)
-		walkn(f, n.Typmods)
-		walkn(f, n.ArrayBounds)
-
-	case *pg.UnlistenStmt:
-		// pass
-
-	case *pg.UpdateStmt:
-		walkn(f, n.Relation)
-		walkn(f, n.TargetList)
-		walkn(f, n.WhereClause)
-		walkn(f, n.FromClause)
-		walkn(f, n.ReturningList)
-		walkn(f, n.WithClause)
-
-	case *pg.VacuumStmt:
-		walkn(f, n.Relation)
-		walkn(f, n.VaCols)
-
-	case *pg.Var:
-		walkn(f, n.Xpr)
-
-	case *pg.VariableSetStmt:
-		walkn(f, n.Args)
-
-	case *pg.VariableShowStmt:
-		// pass
-
-	case *pg.ViewStmt:
-		walkn(f, n.View)
-		walkn(f, n.Aliases)
-		walkn(f, n.Query)
-		walkn(f, n.Options)
-
-	case *pg.WindowClause:
-		walkn(f, n.PartitionClause)
-		walkn(f, n.OrderClause)
-		walkn(f, n.StartOffset)
-		walkn(f, n.EndOffset)
-
-	case *pg.WindowDef:
-		walkn(f, n.PartitionClause)
-		walkn(f, n.OrderClause)
-		walkn(f, n.StartOffset)
-		walkn(f, n.EndOffset)
-
-	case *pg.WindowFunc:
-		walkn(f, n.Xpr)
-		walkn(f, n.Args)
-		walkn(f, n.Aggfilter)
-
-	case *pg.WithCheckOption:
-		walkn(f, n.Qual)
-
-	case *pg.WithClause:
-		walkn(f, n.Ctes)
-
-	case *pg.XmlExpr:
-		walkn(f, n.Xpr)
-		walkn(f, n.NamedArgs)
-		walkn(f, n.ArgNames)
-		walkn(f, n.Args)
-
-	case *pg.XmlSerialize:
-		walkn(f, n.Expr)
-		walkn(f, n.TypeName)
+	case *ast.ViewStmt:
+		if n.View != nil {
+			Walk(f, n.View)
+		}
+		if n.Aliases != nil {
+			Walk(f, n.Aliases)
+		}
+		if n.Query != nil {
+			Walk(f, n.Query)
+		}
+		if n.Options != nil {
+			Walk(f, n.Options)
+		}
+
+	case *ast.WindowClause:
+		if n.PartitionClause != nil {
+			Walk(f, n.PartitionClause)
+		}
+		if n.OrderClause != nil {
+			Walk(f, n.OrderClause)
+		}
+		if n.StartOffset != nil {
+			Walk(f, n.StartOffset)
+		}
+		if n.EndOffset != nil {
+			Walk(f, n.EndOffset)
+		}
+
+	case *ast.WindowDef:
+		if n.PartitionClause != nil {
+			Walk(f, n.PartitionClause)
+		}
+		if n.OrderClause != nil {
+			Walk(f, n.OrderClause)
+		}
+		if n.StartOffset != nil {
+			Walk(f, n.StartOffset)
+		}
+		if n.EndOffset != nil {
+			Walk(f, n.EndOffset)
+		}
+
+	case *ast.WindowFunc:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+		if n.Aggfilter != nil {
+			Walk(f, n.Aggfilter)
+		}
+
+	case *ast.WithCheckOption:
+		if n.Qual != nil {
+			Walk(f, n.Qual)
+		}
+
+	case *ast.WithClause:
+		if n.Ctes != nil {
+			Walk(f, n.Ctes)
+		}
+
+	case *ast.XmlExpr:
+		if n.Xpr != nil {
+			Walk(f, n.Xpr)
+		}
+		if n.NamedArgs != nil {
+			Walk(f, n.NamedArgs)
+		}
+		if n.ArgNames != nil {
+			Walk(f, n.ArgNames)
+		}
+		if n.Args != nil {
+			Walk(f, n.Args)
+		}
+
+	case *ast.XmlSerialize:
+		if n.Expr != nil {
+			Walk(f, n.Expr)
+		}
+		if n.TypeName != nil {
+			Walk(f, n.TypeName)
+		}
 
 	default:
 		panic(fmt.Sprintf("walk: unexpected node type %T", n))
